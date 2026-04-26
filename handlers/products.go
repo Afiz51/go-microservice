@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -63,7 +64,16 @@ func (p *Products) MiddleWareProductValidation(next http.Handler) http.Handler {
 		err := prod.FromJSON(r.Body)
 
 		if err != nil {
+			p.l.Println("[ERROR] deserializing product", err)
 			http.Error(rw, "Unable to Unmarshall json", http.StatusBadRequest)
+			return
+		}
+
+		//validate the product
+		err = prod.Validate()
+		if err != nil {
+			p.l.Println("[ERROR] validating product", err)
+			http.Error(rw, fmt.Sprintf("Unable validating json: %s", err), http.StatusBadRequest)
 			return
 		}
 
